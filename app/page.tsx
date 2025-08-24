@@ -13,9 +13,11 @@ import WinModal from './components/WinModal';
 import WelcomeScreen from './components/WelcomeScreen';
 import PortfolioBadge from './components/PortfolioBadge';
 
-type TowersState = { [key: string]: number[] };
+// PASTIKAN DEFINISI TIPE INI BENAR
+type TowersState = {
+  [key: string]: number[];
+};
 
-// Inisialisasi semua file suara di luar komponen agar tidak dibuat ulang
 const sounds = {
   pick: new Howl({ src: ['/sounds/pick.wav'], volume: 0.5 }),
   place: new Howl({ src: ['/sounds/place.wav'], volume: 0.5 }),
@@ -23,54 +25,34 @@ const sounds = {
   win: new Howl({ src: ['/sounds/win.wav'], volume: 0.7 }),
   background: new Howl({
     src: ['/sounds/background-music.mp3'],
-    loop: true,
-    volume: 0.2,
-    html5: true, // Direkomendasikan untuk file musik yang panjang
+    loop: true, volume: 0.2, html5: true,
   }),
 };
 
 export default function HomePage() {
-  // State untuk alur game
   const [gameState, setGameState] = useState<'welcome' | 'playing'>('welcome');
-  
-  // State untuk logika game
   const [numberOfDisks, setNumberOfDisks] = useState(3);
-  const [towers, setTowers] = useState<TowersState>({});
+  const [towers, setTowers] = useState<TowersState>({}); // Gunakan tipe eksplisit
   const [selectedTower, setSelectedTower] = useState<string | null>(null);
   const [moves, setMoves] = useState(0);
   const [isWin, setIsWin] = useState(false);
-  
-  // State untuk audio
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-
-  // State & Ref untuk fitur baru: Undo dan AI Solver
   const [history, setHistory] = useState<TowersState[]>([]);
   const [isSolving, setIsSolving] = useState(false);
   const solverIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const optimalMoves = useMemo(() => Math.pow(2, numberOfDisks) - 1, [numberOfDisks]);
-  
+
   const handleStartGame = () => {
     resetGame(3);
     setGameState('playing');
-    
     if (!sounds.background.playing()) {
       const soundId = sounds.background.play();
-      
-      sounds.background.once('playerror', () => {
-        console.log("Autoplay diblokir oleh browser.");
-      });
-
+      sounds.background.once('playerror', () => console.log("Autoplay diblokir."));
       sounds.background.once('play', () => {
         setIsMusicPlaying(true);
-        
-        // PERBAIKAN DI SINI:
-        // Pertama, dapatkan posisi saat ini tanpa argumen.
         const currentPos = sounds.background.seek();
-        
-        // Kedua, cek nilainya.
         if (typeof currentPos === 'number' && currentPos < 10) {
-          // Ketiga, atur posisi baru jika perlu.
           sounds.background.seek(10, soundId);
         }
       });
@@ -81,7 +63,7 @@ export default function HomePage() {
     if (solverIntervalRef.current) {
       clearInterval(solverIntervalRef.current);
     }
-    const initialDisks = Array.from({ length: diskCount }, (_, i) => diskCount - i);
+    const initialDisks: number[] = Array.from({ length: diskCount }, (_, i) => diskCount - i);
     setTowers({ A: initialDisks, B: [], C: [] });
     setMoves(0);
     setSelectedTower(null);
@@ -96,22 +78,17 @@ export default function HomePage() {
     resetGame(count);
   };
 
-  // Ganti fungsi toggleMusic yang lama dengan ini:
-
   const toggleMusic = () => {
     if (sounds.background.playing()) {
       sounds.background.pause();
       setIsMusicPlaying(false);
     } else {
       const soundId = sounds.background.play();
-
       sounds.background.once('play', () => {
         setIsMusicPlaying(true);
-        
-        // PERBAIKAN DI SINI JUGA:
         const currentPos = sounds.background.seek();
         if (typeof currentPos === 'number' && currentPos < 10) {
-          sounds.background.seek(10, soundId);
+            sounds.background.seek(10, soundId);
         }
       });
     }
@@ -126,7 +103,7 @@ export default function HomePage() {
   };
 
   const startSolver = () => {
-    const initialTowersState = {
+    const initialTowersState: TowersState = {
       A: Array.from({ length: numberOfDisks }, (_, i) => numberOfDisks - i),
       B: [], C: [],
     };
@@ -146,7 +123,7 @@ export default function HomePage() {
     }
     solveHanoi(numberOfDisks, 'A', 'B', 'C');
 
-    let currentTowers = initialTowersState;
+    let currentTowers: TowersState = initialTowersState;
     let moveIndex = 0;
     solverIntervalRef.current = setInterval(() => {
       if (moveIndex >= movesList.length) {
