@@ -9,36 +9,36 @@ type WinModalProps = {
   optimalMoves: number;
 };
 
+// 1. Modifikasi objek variants
+const modalVariants = {
+  hidden: { y: "-50vh", opacity: 0, scale: 0.8 },
+  visible: {
+    y: "0",
+    opacity: 1,
+    scale: 1,
+    transition: { type: 'spring', stiffness: 180, damping: 20 },
+  },
+  // Key 'exit' diubah menjadi 'exitState' untuk menghindari konflik tipe
+  exitState: { y: "50vh", opacity: 0, scale: 0.8 },
+};
+
 export default function WinModal({ isOpen, onClose, moves, optimalMoves }: WinModalProps) {
-  const backdropVariants = {
-    visible: { opacity: 1 },
-    hidden: { opacity: 0 },
-  };
-
-  const modalVariants = {
-    hidden: { y: "-50vh", opacity: 0, scale: 0.8 },
-    visible: {
-      y: "0",
-      opacity: 1,
-      scale: 1,
-      transition: { type: 'spring', stiffness: 180, damping: 20 }, // Animasi Bounce
-    },
-    exit: { y: "50vh", opacity: 0, scale: 0.8 },
-  };
-
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-          variants={backdropVariants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
           <motion.div
             className="bg-gray-800 rounded-xl p-8 text-center shadow-2xl border border-purple-500/50 w-full max-w-sm"
+            // 2. Terapkan variants secara eksplisit
             variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exitState" // Gunakan nama key yang baru di sini
           >
             <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
               Selamat! 🎉
@@ -56,7 +56,6 @@ export default function WinModal({ isOpen, onClose, moves, optimalMoves }: WinMo
             >
               Main Lagi
             </button>
-            {/* BRANDING BARU DI SINI */}
             <p className="mt-6 text-xs text-gray-500">
               Developed by Ardian Setiawan
             </p>
