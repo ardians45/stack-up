@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion'; // Impor tipe Variants
 
 type WinModalProps = {
   isOpen: boolean;
@@ -9,8 +9,8 @@ type WinModalProps = {
   optimalMoves: number;
 };
 
-// 1. Modifikasi objek variants
-const modalVariants = {
+// Objek variants dengan tipe yang didefinisikan secara eksplisit
+const modalVariants: Variants = {
   hidden: { y: "-50vh", opacity: 0, scale: 0.8 },
   visible: {
     y: "0",
@@ -18,7 +18,6 @@ const modalVariants = {
     scale: 1,
     transition: { type: 'spring', stiffness: 180, damping: 20 },
   },
-  // Key 'exit' diubah menjadi 'exitState' untuk menghindari konflik tipe
   exitState: { y: "50vh", opacity: 0, scale: 0.8 },
 };
 
@@ -34,11 +33,10 @@ export default function WinModal({ isOpen, onClose, moves, optimalMoves }: WinMo
         >
           <motion.div
             className="bg-gray-800 rounded-xl p-8 text-center shadow-2xl border border-purple-500/50 w-full max-w-sm"
-            // 2. Terapkan variants secara eksplisit
             variants={modalVariants}
             initial="hidden"
             animate="visible"
-            exit="exitState" // Gunakan nama key yang baru di sini
+            exit="exitState"
           >
             <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
               Selamat! 🎉
