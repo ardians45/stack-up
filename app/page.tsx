@@ -53,14 +53,24 @@ export default function HomePage() {
   const handleStartGame = () => {
     resetGame(3);
     setGameState('playing');
+    
     if (!sounds.background.playing()) {
       const soundId = sounds.background.play();
+      
       sounds.background.once('playerror', () => {
-        console.log("Autoplay diblokir oleh browser. Menunggu interaksi pengguna.");
+        console.log("Autoplay diblokir oleh browser.");
       });
+
       sounds.background.once('play', () => {
         setIsMusicPlaying(true);
-        if (sounds.background.seek(undefined, soundId) < 10) {
+        
+        // PERBAIKAN DI SINI:
+        // Pertama, dapatkan posisi saat ini tanpa argumen.
+        const currentPos = sounds.background.seek();
+        
+        // Kedua, cek nilainya.
+        if (typeof currentPos === 'number' && currentPos < 10) {
+          // Ketiga, atur posisi baru jika perlu.
           sounds.background.seek(10, soundId);
         }
       });
@@ -86,16 +96,22 @@ export default function HomePage() {
     resetGame(count);
   };
 
+  // Ganti fungsi toggleMusic yang lama dengan ini:
+
   const toggleMusic = () => {
     if (sounds.background.playing()) {
       sounds.background.pause();
       setIsMusicPlaying(false);
     } else {
       const soundId = sounds.background.play();
+
       sounds.background.once('play', () => {
         setIsMusicPlaying(true);
-        if (sounds.background.seek(undefined, soundId) < 10) {
-            sounds.background.seek(10, soundId);
+        
+        // PERBAIKAN DI SINI JUGA:
+        const currentPos = sounds.background.seek();
+        if (typeof currentPos === 'number' && currentPos < 10) {
+          sounds.background.seek(10, soundId);
         }
       });
     }
