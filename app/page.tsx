@@ -13,7 +13,6 @@ import WinModal from './components/WinModal';
 import WelcomeScreen from './components/WelcomeScreen';
 import PortfolioBadge from './components/PortfolioBadge';
 
-// PASTIKAN DEFINISI TIPE INI BENAR
 type TowersState = {
   [key: string]: number[];
 };
@@ -23,16 +22,21 @@ const sounds = {
   place: new Howl({ src: ['/sounds/place.wav'], volume: 0.5 }),
   error: new Howl({ src: ['/sounds/error.wav'], volume: 0.4 }),
   win: new Howl({ src: ['/sounds/win.wav'], volume: 0.7 }),
+  // PENYESUAIAN FITUR: Volume musik latar dikecilkan 50%
   background: new Howl({
     src: ['/sounds/background-music.mp3'],
-    loop: true, volume: 0.2, html5: true,
+    loop: true,
+    volume: 0.1, // Volume diubah dari 0.2 menjadi 0.1
+    html5: true,
   }),
 };
+
+const MAX_LEVEL_DISKS = 8; // Batas maksimal jumlah cakram
 
 export default function HomePage() {
   const [gameState, setGameState] = useState<'welcome' | 'playing'>('welcome');
   const [numberOfDisks, setNumberOfDisks] = useState(3);
-  const [towers, setTowers] = useState<TowersState>({}); // Gunakan tipe eksplisit
+  const [towers, setTowers] = useState<TowersState>({});
   const [selectedTower, setSelectedTower] = useState<string | null>(null);
   const [moves, setMoves] = useState(0);
   const [isWin, setIsWin] = useState(false);
@@ -40,6 +44,9 @@ export default function HomePage() {
   const [history, setHistory] = useState<TowersState[]>([]);
   const [isSolving, setIsSolving] = useState(false);
   const solverIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // FITUR BARU: State untuk feedback langkah tidak valid
+  const [errorTower, setErrorTower] = useState<string | null>(null);
 
   const optimalMoves = useMemo(() => Math.pow(2, numberOfDisks) - 1, [numberOfDisks]);
 
@@ -60,9 +67,7 @@ export default function HomePage() {
   };
 
   const resetGame = (diskCount = numberOfDisks) => {
-    if (solverIntervalRef.current) {
-      clearInterval(solverIntervalRef.current);
-    }
+    if (solverIntervalRef.current) clearInterval(solverIntervalRef.current);
     const initialDisks: number[] = Array.from({ length: diskCount }, (_, i) => diskCount - i);
     setTowers({ A: initialDisks, B: [], C: [] });
     setMoves(0);
@@ -143,10 +148,16 @@ export default function HomePage() {
     }, 400);
   };
 
+
+  // FITUR BARU: Fungsi untuk lanjut ke level berikutnya
+  const handleNextLevel = () => {
+    if (numberOfDisks < MAX_LEVEL_DISKS) {
+      resetGame(numberOfDisks + 1);
+    }
+  };
+
   useEffect(() => {
-    return () => {
-      Object.values(sounds).forEach(sound => sound.stop());
-    };
+    return () => { Object.values(sounds).forEach(sound => sound.stop()); };
   }, []);
 
   useEffect(() => {
@@ -160,7 +171,8 @@ export default function HomePage() {
     if (isWin || isSolving) return;
     if (!selectedTower) {
       if (towers[towerId]?.length > 0) {
-        setSelectedTower(towerId); sounds.pick.play();
+        setSelectedTower(towerId);
+        sounds.pick.play();
       }
     } else {
       const sourceTowerDisks = [...towers[selectedTower]];
@@ -169,10 +181,18 @@ export default function HomePage() {
       const topDiskOnTarget = targetTowerDisks[targetTowerDisks.length - 1];
       if (!topDiskOnTarget || diskToMove < topDiskOnTarget) {
         setHistory(prevHistory => [...prevHistory, towers]);
-        sourceTowerDisks.pop(); targetTowerDisks.push(diskToMove);
+        sourceTowerDisks.pop();
+        targetTowerDisks.push(diskToMove);
         setTowers({ ...towers, [selectedTower]: sourceTowerDisks, [towerId]: targetTowerDisks });
-        setMoves(prevMoves => prevMoves + 1); sounds.place.play();
-      } else { sounds.error.play(); }
+        setMoves(prevMoves => prevMoves + 1);
+        sounds.place.play();
+      } else {
+        sounds.error.play();
+        // FITUR BARU: Set tower yang error untuk memicu animasi
+        setErrorTower(towerId);
+        // Hapus status error setelah animasi selesai
+        setTimeout(() => setErrorTower(null), 500);
+      }
       setSelectedTower(null);
     }
   };
@@ -193,8 +213,16 @@ export default function HomePage() {
             <div className="w-full max-w-4xl flex justify-around items-end my-8 flex-grow">
               {['A', 'B', 'C'].map((id) => (
                 towers[id] && (
-                  <Tower key={id} id={id} disks={towers[id]} totalDisks={numberOfDisks}
-                    onClick={handleTowerClick} isSelected={selectedTower === id} />
+                  <Tower
+                    key={id}
+                    id={id}
+                    disks={towers[id]}
+                    totalDisks={numberOfDisks}
+                    onClick={handleTowerClick}
+                    isSelected={selectedTower === id}
+                    // FITUR BARU: Kirim prop error ke komponen Tower
+                    isError={errorTower === id}
+                  />
                 )
               ))}
             </div>
@@ -202,13 +230,22 @@ export default function HomePage() {
               onReset={() => resetGame()}
               onDiskCountChange={handleDiskCountChange}
               diskCount={numberOfDisks}
-              moves={moves} optimalMoves={optimalMoves}
+              moves={moves}
+              optimalMoves={optimalMoves}
               onUndo={handleUndo}
               canUndo={history.length > 0}
               onSolve={startSolver}
               isSolving={isSolving}
             />
-            <WinModal isOpen={isWin} onClose={() => resetGame()} moves={moves} optimalMoves={optimalMoves} />
+            <WinModal
+              isOpen={isWin}
+              // FITUR BARU: Kirim fungsi-fungsi baru ke WinModal
+              onPlayAgain={() => resetGame()}
+              onNextLevel={handleNextLevel}
+              isMaxLevel={numberOfDisks >= MAX_LEVEL_DISKS}
+              moves={moves}
+              optimalMoves={optimalMoves}
+            />
           </main>
         )}
       </AnimatePresence>

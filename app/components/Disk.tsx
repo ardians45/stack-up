@@ -25,7 +25,7 @@ export default function Disk({ size, totalDisks }: DiskProps) {
   
   return (
     <motion.div
-      layout // Kunci animasi otomatis
+      layout 
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
       className={`h-6 md:h-8 rounded-md shadow-lg bg-gradient-to-r ${colors[size - 1]}`}
       style={{ width: `${widthPercentage}%` }}

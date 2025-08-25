@@ -1,27 +1,23 @@
 "use client";
 
-import { motion, AnimatePresence, Variants } from 'framer-motion'; // Impor tipe Variants
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 type WinModalProps = {
   isOpen: boolean;
-  onClose: () => void;
+  onPlayAgain: () => void;      // Prop diubah namanya agar lebih jelas
+  onNextLevel: () => void;      // Prop baru untuk level selanjutnya
+  isMaxLevel: boolean;          // Prop baru untuk cek level maksimal
   moves: number;
   optimalMoves: number;
 };
 
-// Objek variants dengan tipe yang didefinisikan secara eksplisit
 const modalVariants: Variants = {
   hidden: { y: "-50vh", opacity: 0, scale: 0.8 },
-  visible: {
-    y: "0",
-    opacity: 1,
-    scale: 1,
-    transition: { type: 'spring', stiffness: 180, damping: 20 },
-  },
+  visible: { y: "0", opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 180, damping: 20 } },
   exitState: { y: "50vh", opacity: 0, scale: 0.8 },
 };
 
-export default function WinModal({ isOpen, onClose, moves, optimalMoves }: WinModalProps) {
+export default function WinModal({ isOpen, onPlayAgain, onNextLevel, isMaxLevel, moves, optimalMoves }: WinModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -48,12 +44,24 @@ export default function WinModal({ isOpen, onClose, moves, optimalMoves }: WinMo
             {moves === optimalMoves && (
               <p className="mt-2 text-yellow-400 font-semibold">Sempurna! ✨</p>
             )}
-            <button
-              onClick={onClose}
-              className="mt-8 px-8 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400"
-            >
-              Main Lagi
-            </button>
+            
+            {/* FITUR BARU: Dua tombol untuk aksi berbeda */}
+            <div className="mt-8 flex justify-center gap-4">
+              <button
+                onClick={onPlayAgain}
+                className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
+              >
+                Main Lagi
+              </button>
+              <button
+                onClick={onNextLevel}
+                disabled={isMaxLevel}
+                className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:bg-purple-800 disabled:text-purple-400 disabled:cursor-not-allowed"
+              >
+                {isMaxLevel ? 'Level Max' : 'Next Level'}
+              </button>
+            </div>
+
             <p className="mt-6 text-xs text-gray-500">
               Developed by Ardian Setiawan
             </p>
