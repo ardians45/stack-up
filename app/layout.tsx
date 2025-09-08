@@ -6,8 +6,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 // TAMBAHKAN ATAU MODIFIKASI BAGIAN INI
 export const metadata: Metadata = {
-  title: "Tower of Hanoi by Ardian", // Judul baru untuk tab browser
-  description: "A classic puzzle game, Tower of Hanoi, built by Ardian Setiawan with Next.js.",
+  title: "Stack Up by Ardian", // Judul baru untuk tab browser
+  description: "A classic puzzle game, Stack Up, built by Ardian Setiawan with Next.js.",
 };
 // ------------------------------------
 
